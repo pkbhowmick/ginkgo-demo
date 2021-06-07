@@ -6,17 +6,21 @@ import (
 	"github.com/pkbhowmick/ginkgo-demo/test/books"
 )
 
+func doSomething() bool {
+	return true
+}
+
 var _ = Describe("Book", func() {
 	var (
-		longBook books.Book
+		longBook  books.Book
 		shortBook books.Book
 	)
 
 	BeforeEach(func() {
 		longBook = books.Book{
-			Title: "A",
+			Title:  "A",
 			Author: "Victor",
-			Pages: 2783,
+			Pages:  2783,
 		}
 
 		shortBook = books.Book{
@@ -38,6 +42,28 @@ var _ = Describe("Book", func() {
 				Expect(shortBook.CategoryByLength()).To(Equal("SHORT STORY"))
 			})
 		})
+
+		Context("Test failure in Go routine", func() {
+			It("panic in a go routine", func() {
+				done := make(chan interface{})
+				go func() {
+					defer GinkgoRecover()
+
+					Expect(doSomething()).Should(BeTrue())
+
+					close(done)
+				}()
+				Eventually(done, 3).Should(BeClosed())
+			})
+		})
+
+		Context("Test failure and recovery", func() {
+			It("panic and recover by ginkgo", func() {
+				defer GinkgoRecover()
+				Fail("for some reason")
+			})
+		})
 	})
 })
+
 
