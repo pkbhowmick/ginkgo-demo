@@ -1,9 +1,9 @@
 package books
 
 type Book struct {
-	Title string
-	Author string
-	Pages int
+	Title string `json:"title"`
+	Author string `json:"author"`
+	Pages int  `json:"pages"`
 }
 
 func (b *Book) CategoryByLength() string {
