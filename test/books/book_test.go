@@ -2,6 +2,7 @@ package books_test
 
 import (
 	"encoding/json"
+	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkbhowmick/ginkgo-demo/test/books"
@@ -9,6 +10,11 @@ import (
 
 func doSomething() bool {
 	return true
+}
+
+func helperFunc(ch chan string) {
+	ch <- "Done!"
+	//ch <- "NotOK!"
 }
 
 func NewBookFromJson(data []byte) (books.Book, error) {
@@ -56,6 +62,15 @@ var _ = Describe("Book", func() {
 		book, err = NewBookFromJson(json)
 	})
 
+	JustAfterEach(func() {
+		if CurrentGinkgoTestDescription().Failed {
+			fmt.Printf("Collecting diags just after failed test in %s\n",CurrentGinkgoTestDescription().TestText)
+			fmt.Printf("Actual book was %v\n", book)
+		} else {
+			fmt.Println("Test passed")
+		}
+	})
+
 	Describe("Categorized book length", func() {
 
 		Context("With more than 300 pages", func() {
@@ -86,12 +101,13 @@ var _ = Describe("Book", func() {
 			})
 		})
 
-		//Context("Test failure and recovery", func() {
-		//	It("panic and recover by ginkgo", func() {
-		//		defer GinkgoRecover()
-		//		Fail("for some reason")
-		//	})
-		//})
+		// Pending specs
+		XContext("Test failure and recovery", func() {
+			It("panic and recover by ginkgo", func() {
+				defer GinkgoRecover()
+				Fail("for some reason")
+			})
+		})
 	})
 
 	// Some important lines from doc:
@@ -125,6 +141,23 @@ var _ = Describe("Book", func() {
 			It("should error", func() {
 				Expect(err).To(HaveOccurred())
 			})
+		})
+	})
+
+	Describe("Do some asynchronous test", func() {
+		It("should post to the channel", func() {
+			c := make(chan string, 0)
+
+			go helperFunc(c)
+			Expect(<-c).To(ContainSubstring("Done!"))
+		})
+
+		It("should post to the channel", func(done Done) {
+			c := make(chan string, 0)
+
+			go helperFunc(c)
+			Expect(<-c).To(ContainSubstring("Done!"))
+			close(done)
 		})
 	})
 })
