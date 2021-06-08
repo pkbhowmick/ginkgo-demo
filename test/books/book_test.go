@@ -11,7 +11,7 @@ func doSomething() bool {
 	return true
 }
 
-func NewBookFromJson(data []byte) (books.Book,error) {
+func NewBookFromJson(data []byte) (books.Book, error) {
 	var book books.Book
 	err := json.Unmarshal(data, &book)
 	if err != nil {
@@ -24,8 +24,9 @@ var _ = Describe("Book", func() {
 	var (
 		longBook  books.Book
 		shortBook books.Book
-		book books.Book
-		err error
+		book      books.Book
+		err       error
+		json      []byte
 	)
 
 	BeforeEach(func() {
@@ -41,11 +42,18 @@ var _ = Describe("Book", func() {
 			Pages:  24,
 		}
 
-		book, err = NewBookFromJson([]byte(`{
+		json = []byte(`{
             "title":"Les Miserables",
 			"author":"Victor Hugo",
 			"pages":2783
-            }`))
+            }`)
+	})
+
+	// JustBeforeEach blocks are guaranteed to be run
+	// after all the BeforeEach blocks have run
+	// and just before the It block has run.
+	JustBeforeEach(func() {
+		book, err = NewBookFromJson(json)
 	})
 
 	Describe("Categorized book length", func() {
@@ -104,11 +112,11 @@ var _ = Describe("Book", func() {
 		})
 		Context("when the json fails to parse", func() {
 			BeforeEach(func() {
-				book, err = NewBookFromJson([]byte(`{
-            				"title":"Les Miserables",
-							"author":"Victor Hugo",
-							"pages":2783invalid
-				}`))
+				json = []byte(`{
+					"title":"Les Miserables",
+					"author":"Victor Hugo",
+					"pages":2783invalid
+				}`)
 			})
 			It("should return the zero value for the book", func() {
 				Expect(book).To(BeZero())
@@ -120,7 +128,3 @@ var _ = Describe("Book", func() {
 		})
 	})
 })
-
-
-
-
